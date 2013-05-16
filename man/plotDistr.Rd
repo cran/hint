@@ -57,7 +57,7 @@ Alex T. Kalinka \email{alex.t.kalinka@gmail.com}
 \code{\link{plot.hint.test}}, \code{\link{hint.test}}, \code{\link{hint.dist.test}}.
 }
 \examples{
-dd <- dhint(25,12,9)
+dd <- dhint(25, c(12, 9))
 plotDistr(dd)
 }
 

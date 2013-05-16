@@ -8,7 +8,7 @@ To Test for Significant Distances between pairs of Intersection Sizes
 Tests whether the absolute distance between two intersection sizes would be expected by chance, i.e. whether they fall into opposite tails of their respective Hypergeometric Intersection distributions.
 }
 \usage{
-hint.dist.test(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternative = "greater")
+hint.dist.test(d, n1, A1, n2, A2, q1 = 0, q2 = 0, alternative = "greater")
 }
 
 \arguments{
@@ -18,20 +18,14 @@ A positive integer specifying the observed distance to be tested.
   \item{n1}{
 An integer specifying the number of categories in the urns for the first distribution.
 }
-  \item{a1}{
-An integer specifying the number of balls drawn from the first urn for the first distribution.
-}
-  \item{b1}{
-An integer specifying the number of balls drawn from the second urn for the first distribution.
+  \item{A1}{
+An integer vector specifying the number of balls drawn from urns for the first distribution.
 }
   \item{n2}{
 An integer specifying the number of categories in the urns for the second distribution.
 }
-  \item{a2}{
-An integer specifying the number of balls drawn from the first urn for the second distribution.
-}
-  \item{b2}{
-An integer specifying the number of balls drawn from the second urn for the second distribution.
+  \item{A2}{
+An integer vector specifying the number of balls drawn from the urns for the second distribution.
 }
   \item{q1}{
 An integer specifying the number of categories with duplicates in the second urn of the first distribution. If 0 then the symmetric, singleton case is computed, otherwise the asymmetric, duplicates case is computed (see \code{\link{Hyperintersection}}).
@@ -66,7 +60,7 @@ Alex T. Kalinka \email{alex.t.kalinka@gmail.com}
 \code{\link{phint}}, \code{\link{hint.test}}, \code{\link{plotDistr}}, \code{\link{plot.hint.test}}.
 }
 \examples{
-hint.dist.test(4, 20, 11, 9, 24, 14, 17, alternative = "greater")
+hint.dist.test(4, 20, c(11, 9), 24, c(14, 17), alternative = "greater")
 
 }
 

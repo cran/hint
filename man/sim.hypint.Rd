@@ -8,31 +8,25 @@ Simulating Intersection Sizes
 This function simulates the drawing of balls from two urns to generate distributions of intersection sizes.
 }
 \usage{
-sim.hypint(n, a, b, sims = 10000, Na = rep(1, n), Nb = rep(1, n))
+sim.hypint(n, A, sims = 10000, Na = NULL)
 }
 
 \arguments{
   \item{n}{
 An integer specifying the number of categories in the urns.
 }
-  \item{a}{
-An integer specifying the number of balls drawn from the first urn.
-}
-  \item{b}{
-An integer specifying the number of balls drawn from the second urn.
+  \item{A}{
+A vector of integers specifying the samples to be taken from each urn. The length of the vector equals the number of urns.
 }
   \item{sims}{
 An integer specifying the number of replicate draws for the simulation. Defaults to 10,000.
 }
   \item{Na}{
-A vector of integers specifying the number of balls in each category for the first urn.
-}
-  \item{Nb}{
-A vector of integers specifying the number of balls in each category for the second urn.
+A list of integer vectors specifying the number of balls in each category for each urn.
 }
 }
 \details{
-The simulation allows any number of balls in each of the \code{n} categories via the \code{Na} and \code{Nb} arguments.
+The simulation allows any number of balls in each of the \code{n} categories via the \code{Na} argument.
 }
 \value{
 An integer vector of length \code{sims} giving intersection sizes for all replicates of the simulation.
@@ -49,6 +43,6 @@ Alex T. Kalinka \email{alex.t.kalinka@gmail.com}
 \code{\link{Hyperintersection}}, \code{\link{hint.test}}.
 }
 \examples{
-nn <- sim.hypint(108, 54, 73, sims = 10)
+nn <- sim.hypint(108, c(54, 73), sims = 10)
 }
 

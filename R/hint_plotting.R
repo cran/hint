@@ -39,13 +39,13 @@ plot.hint.test <- function(x, ...)
 		params <- distr$parameters
 		md <- match("d",names(params))
 		if(!is.na(md)){ # distance distribution.
-			dd <- .hint.dist.distr(params[2],params[3],params[4],params[6],params[7],params[8],params[5],params[9])
+			dd <- .hint.dist.distr(params[2],c(params[3],params[4]),params[6],c(params[7],params[8]),params[5],params[9])
 			rv <- dd[,1]
 			pv <- dd[,2]
 			cutoff <- params[1]
 			alt <- distr$alternative
 		}else{
-			dd <- dhint(params[1],params[2],params[3],params[4])
+			dd <- dhint(params[1],c(params[2],params[3]),params[4])
 			rv <- dd[,1]
 			pv <- dd[,2]
 			cutoff <- params[5]

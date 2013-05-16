@@ -67,7 +67,7 @@ Alex T. Kalinka \email{alex.t.kalinka@gmail.com}
 \code{\link{Hyperintersection}}, \code{\link{plotDistr}}.
 }
 \examples{
-## Generate the distribution of distinct categories drawn from a single urn containing duplicates.
+## Generate the distribution of distinct categories drawn from a single urn.
 dd <- dhydist(20, 10, 12)
 ## Restrict the range of intersections.
 dd <- dhydist(20, 10, 12, range = 5:10)

@@ -37,10 +37,10 @@ Alex T. Kalinka \email{alex.t.kalinka@gmail.com}
 \code{\link{plotDistr}}, \code{\link{plot.hint.test}}.
 }
 \examples{
-dd <- dhint(25, 12, 9)
+dd <- dhint(25, c(12, 9))
 plotDistr(dd)
-dd1 <- dhint(12, 4, 7)
-dd2 <- dhint(8, 4, 2)
+dd1 <- dhint(12, c(4, 7))
+dd2 <- dhint(8, c(4, 2))
 add.distr(dd1, dd2, cols = c("blue", "darkgreen"))
 }
 

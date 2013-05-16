@@ -15,38 +15,72 @@
 # 1. Density, distribution (probability mass function), quantile, and random generation functions:
 
 
-.hint.check.params <- function(n, a, b, q)
+.hint.check.params <- function(n, A, q)
 	{
-	if(!a>=0 || !b>=0 || !n>=0 || !q>=0 || !a<=n || !b<=(n+q) || !q<=n || !q>=0){
-		stop("the following constraints must be met:\nn > 0\n0 <= a <= n\n0 <= b <= (n + q)\n0 <= q <= n\n", call. = FALSE)
+	la <- length(A)
+	if(la>2 && q!=0){
+		stop("q must be 0 if there are more than 2 urns\n", call. = FALSE)
+	}else if(la==2 && q!=0){
+		if(!A[2]<=(n+q)){
+			stop("the following constraint must be met:\n0 <= b <= (n + q)\n", call. = FALSE)
+			}
 		}
-	vmin <- max(a+b-n-min(floor(b/2),q),0)
-	vmax <- min(a,b)
+	if(!n>0 || !q>=0 || !q<=n){
+		stop("the following constraints must be met:\nn > 0\n0 <= q <= n\n", call. = FALSE)
+		}
+	ll <- list()
+	for(i in 1:la){
+		if(!A[i]>=0 || !A[i]<=n){
+			stop("the following constraints must be met:\n0 <= a <= n\n", call. = FALSE)
+			}
+		ll[[i]] <- A[i]
+		}
+
+	if(la==2 && q>0){
+		vmin <- max(sum(A)-n-min(floor(A[2]/2),q),0)
+	}else{
+		vmin <- max(sum(A)-(la-1)*n,0)
+		}
+	
+	vmax <- Reduce(min, ll)
 	vrange <- vmin:vmax
 	return(vrange)
 	}
 
 
 
-dhint <- function(n, a, b, q = 0, range = NULL, log = FALSE, verbose = TRUE)
+dhint <- function(n, A, q = 0, range = NULL, approx = FALSE, log = FALSE, verbose = TRUE)
 	{
 	# range is a vector giving intersection sizes for which the user wishes to retrieve probabilities.
-	vrange <- .hint.check.params(n, a, b, q)
+	# A is a vector of integers giving sample sizes from each urn (N = length(A)).
+	# If approx is TRUE then a binomial approximation will be applied (with warning(s) if assumptions are not met).
+	vrange <- .hint.check.params(n, A, q)
 	if(is.null(range)){
 		range <- vrange
 		}
+	la <- length(A)
 	if(q==0){
 		rn <- intersect(range, vrange)
 		if(length(rn)==0){
 			dist <- data.frame(v=range, p=rep(0,length(range)))
 			}
-		dist <- .hint.symm.sing(n, a, b, range = rn)
+		if(la==2){
+			dist <- .hint.symm.sing(n, A[1], A[2], range = rn)
+		}else if(approx){
+			dist <- .bint.multi.N(n, A, range = rn)
+		}else if(la == 3){
+			dist <- .hint.multi.urn.3(n, A, range = rn)
+		}else if(la == 4){
+			dist <- .hint.multi.urn.4(n, A, range = rn, verbose = verbose)
+		}else if(la > 4 && !approx){
+			stop("no exact distribution known; to use a binomial approximation set approx = TRUE\n", call. = FALSE)
+			}
 	}else{
 		rn <- intersect(range, vrange)
 		if(length(rn)==0){
 			dist <- data.frame(v=range, p=rep(0,length(range)))
 			}
-		dist <- .hint.asymm.dup(n, a, b, q, range = rn, verbose = verbose)
+		dist <- .hint.asymm.dup(n, A[1], A[2], q, range = rn, verbose = verbose)
 		}
 	if(log){
 		dist[,2] <- log(dist[,2])
@@ -55,14 +89,14 @@ dhint <- function(n, a, b, q = 0, range = NULL, log = FALSE, verbose = TRUE)
 	}
 
 
-phint <- function(n, a, b, q = 0, vals, upper.tail = TRUE, log.p = FALSE)
+phint <- function(n, A, q = 0, vals, upper.tail = TRUE, log.p = FALSE)
 	{
 	# vals are the values of v for which we want cumulative probabilities.
-	dist <- dhint(n, a, b, q)
+	dist <- dhint(n, A, q)
 	if(log.p){
 		dist[,2] <- log(dist[,2])
 		}
-	vrange <- .hint.check.params(n, a, b, q)
+	vrange <- .hint.check.params(n, A, q)
 	rn <- intersect(vals, vrange)
 	if(length(rn)==0){
 		pp <- NULL
@@ -101,16 +135,16 @@ phint <- function(n, a, b, q = 0, vals, upper.tail = TRUE, log.p = FALSE)
 	}
 
 
-qhint <- function(p, n, a, b, q = 0, upper.tail = TRUE, log.p = FALSE)
+qhint <- function(p, n, A, q = 0, upper.tail = TRUE, log.p = FALSE)
 	{
 	# p is a probability.
 	if(!p>=0 || !p<=1){
 		stop("p must be between 0 and 1\n", call. = FALSE)
 		}
-	vrange <- .hint.check.params(n, a, b, q)
+	vrange <- .hint.check.params(n, A, q)
 	vals <- vrange
-	dist <- dhint(n, a, b, q, range=vals)
-	pvals <- phint(n, a, b, q, upper.tail=upper.tail, vals=vals)
+	dist <- dhint(n, A, q, range=vals)
+	pvals <- phint(n, A, q, upper.tail=upper.tail, vals=vals)
 	inds <- which(pvals[,2]<=p)
 	pv <- sum(dist[inds, 2])
 	qq <- pvals[max(inds),1]
@@ -122,10 +156,10 @@ qhint <- function(p, n, a, b, q = 0, upper.tail = TRUE, log.p = FALSE)
 	}
 
 
-rhint <- function(num = 5, n, a, b, q = 0)
+rhint <- function(num = 5, n, A, q = 0)
 	{
-	vrange <- .hint.check.params(n, a, b, q)
-	probs <- dhint(n, a, b, q, range=vrange)
+	vrange <- .hint.check.params(n, A, q)
+	probs <- dhint(n, A, q, range=vrange)
 	samp <- sample(vrange, num, prob = probs[,2], replace = TRUE)
 	return(samp)
 	}
@@ -186,15 +220,15 @@ hint.test <- function(cats, draw1, draw2, alternative = "greater")
 	}else if(alternative == "less"){
 		ut <- FALSE
 	}else if(alternative == "two.sided"){
-		p1 <- phint(n, a, b, q, vals = v, upper.tail = TRUE)
-		p2 <- phint(n, a, b, q, vals = v, upper.tail = FALSE)
+		p1 <- phint(n, A = c(a, b), q, vals = v, upper.tail = TRUE)
+		p2 <- phint(n, A = c(a, b), q, vals = v, upper.tail = FALSE)
 	}else{
 		stop("alternative hypothesis must be one of: greater, less, or two.sided\n", call. = FALSE)
 		}
 	if(alternative == "two.sided"){
 		pval <- 2*min(p1, p2)
 	}else{
-		pval <- phint(n, a, b, q, vals = v, upper.tail = ut)[,2]
+		pval <- phint(n, A = c(a, b), q, vals = v, upper.tail = ut)[,2]
 		}
 	ret <- list()
 	params <- c(n,a,b,q,v)
@@ -207,15 +241,15 @@ hint.test <- function(cats, draw1, draw2, alternative = "greater")
 	}
 
 
-hint.dist.test <- function(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternative = "greater")
+hint.dist.test <- function(d, n1, A1, n2, A2, q1 = 0, q2 = 0, alternative = "greater")
 	{
 	# d is the distance we wish to test.
 	# alternative can be: greater, less, or two.sided.
 	# two-sided defined by doubling: 2*min(p.upper, p.lower)
 	#
-	vrange1 <- .hint.check.params(n1, a1, b1, q1)
-	vrange2 <- .hint.check.params(n2, a2, b2, q2)
-	dist <- .hint.dist.distr(n1, a1, b1, n2, a2, b2, q1, q2)
+	vrange1 <- .hint.check.params(n1, A1, q1)
+	vrange2 <- .hint.check.params(n2, A2, q2)
+	dist <- .hint.dist.distr(n1, A1, n2, A2, q1, q2)
 	if(alternative == "greater"){
 		inds <- which(dist[,1] >= d)
 		if(length(inds)==0){
@@ -248,7 +282,7 @@ hint.dist.test <- function(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternativ
 		stop("alternative hypothesis must be one of: greater, less, or two.sided\n", call. = FALSE)
 		}
 	ret <- list()
-	params <- c(d,n1,a1,b1,q1,n2,a2,b2,q2)
+	params <- c(d,n1,A1,q1,n2,A2,q2)
 	names(params) <- c("d","n1","a1","b1","q1","n2","a2","b2","q2")
 	ret$parameters <- params
 	ret$p.value <- pval
@@ -289,10 +323,67 @@ hint.dist.test <- function(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternativ
 	}
 
 
+# Hypergeometric intersection for 3 urns: lgamma.
+.hint.multi.urn.3 <- function(n, A, range)
+	{
+	a <- A[1]; b <- A[2]; c <- A[3]
+	dist <- NULL
+	for(v in range){
+		qs <- 0
+		mni <- max(a+b-n-v,0)
+		mxi <- min(a-v,b-v)
+		for(i in mni:mxi){
+			if(n-a-b+v+i+1 <= 0 || n-c-i+1 <=0 || n-v-i+1 <=0){
+				qs <- qs
+			}else{
+				qs <- sum(qs, exp(lgamma(a+1) - lgamma(v+1) - lgamma(a-v-i+1) - lgamma(i+1) + lgamma(n-a+1) - lgamma(b-v-i+1) - lgamma(n-a-b+v+i+1) + lgamma(n-v-i+1) - lgamma(n-c-i+1) - lgamma(c-v+1) + lgamma(b+1) + lgamma(n-b+1) - lgamma(n+1) + lgamma(c+1) + lgamma(n-c+1) - lgamma(n+1)) )
+				}
+			}
+
+		dist <- append(dist, qs)
+		}
+	ret <- data.frame(v=range, p=dist)
+	return(ret)
+	}
+
+
+# Hypergeometric intersection for 4 urns: lgamma.
+.hint.multi.urn.4 <- function(n, A, range, verbose = TRUE)
+	{
+	a <- A[1]; b <- A[2]; c <- A[3]; d <- A[4]
+	dist <- NULL
+	for(v in range){
+		if(verbose){
+			cat("   Completed...",round((v/max(range))*100,3),"%\r",collapse="")
+			}
+		qs <- 0
+		mni <- max(a+b-n-v,0)
+		mxi <- min(a-v,b-v)
+		for(i in mni:mxi){
+			mnl <- max(a+b+c-2*n-2*v,0)
+			mxl <- i
+			for(l in mnl:mxl){
+				if(n-a-b+v+i+1 <= 0 || n-c-i+l+1 <=0 || n-l-d+1 <=0 || n-v-l+1 <=0 || c-v-l+1 <=0 || b-v-i+1 <=0){
+					qs <- qs
+				}else{
+					qs <- sum(qs, exp( lgamma(a+1) - lgamma(v+1) - lgamma(a-v-i+1) - lgamma(i-l+1) - lgamma(l+1) + lgamma(n-a+1) - lgamma(n-a-b+v+i+1) - lgamma(b-v-i+1) + lgamma(n-v-i+1) - lgamma(n-i-c+l+1) - lgamma(c-v-l+1) + lgamma(n-v-l+1) - lgamma(n-l-d+1) - lgamma(d-v+1) - 3*lgamma(n+1) + lgamma(n-b+1) + lgamma(b+1) + lgamma(n-c+1) + lgamma(c+1) + lgamma(n-d+1) + lgamma(d+1) ) )
+					}
+				}
+			}
+
+		dist <- append(dist, qs)
+		}
+	cat("\n")
+	ret <- data.frame(v=range, p=dist)
+	return(ret)
+	}
+
+
 # Distribution of distances between independent intersection distributions.
-.hint.dist.distr <- function(n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0)
+.hint.dist.distr <- function(n1, A1, n2, A2, q1 = 0, q2 = 0)
 	{
 	dist <- NULL
+	a1 <- A1[1]; b1 <- A1[2]; a2 <- A2[1]; b2 <- A2[2]
 	m1 <- min(a1,b1)
 	m2 <- min(a2,b2)
 	m3 <- max(a1+b1-n1-min(floor(b1/2),q1),0)
@@ -349,14 +440,14 @@ hint.dist.test <- function(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternativ
 			if(v < m3){
 				p1 <- 0
 			}else{
-				p1 <- dhint(n1, a1, b1, q1, range = v, verbose = FALSE)[,2]
+				p1 <- dhint(n1, A = c(a1, b1), q1, range = v, verbose = FALSE)[,2]
 				}
 			# Second distribution.
 			v <- pairs[i,2]
 			if(v < m4){
 				p2 <- 0
 			}else{
-				p2 <- dhint(n2, a2, b2, q2, range = v, verbose = FALSE)[,2]
+				p2 <- dhint(n2, A = c(a2, b2), q2, range = v, verbose = FALSE)[,2]
 				}
 			sd <- sum(sd, p1*p2)
 			}
@@ -372,25 +463,55 @@ hint.dist.test <- function(d, n1, a1, b1, n2, a2, b2, q1 = 0, q2 = 0, alternativ
 
 # Two urns.
 # Variable numbers in each category:
-sim.hypint <- function(n, a, b, sims = 10000, Na = rep(1,n), Nb = rep(1,n))
+sim.hypint <- function(n, A, sims = 10000, Na = NULL)
 	{
-	# Na and Nb are vectors with the numbers in each category (if they're variable).
-	sdist <- NULL; na <- nb <- NULL
-	for(i in 1:n){
-		na <- append(na, rep(i,Na[i]))
-		nb <- append(nb, rep(i,Nb[i]))
+	# Na is a list of vectors with the numbers in each category (if they're variable).
+	if(!is.null(Na)){
+		if(length(Na) != length(A)){
+			stop("the length of A must equal the length of Na", call. = FALSE)
+			}
+	}else{
+		Na <- list()
+		for(i in 1:length(A)){
+			Na[[i]] <- rep(1,n)
+			}
+		}
+
+	sdist <- NULL; na <- list()
+	for(i in 1:length(Na)){
+		nn <- NULL
+		for(j in 1:n){
+			nn <- append(nn, rep(j,Na[[i]][j]))
+			}
+		na[[i]] <- nn
 		}
 
 	for(i in 1:sims){
 		cat("\r   Completed...",round((i/sims)*100,3),"%",collapse="")
-		s1 <- sample(na, a, replace = FALSE)
-		s2 <- sample(nb, b, replace = FALSE)
-		sdist[i] <- length(intersect(s1,s2))
+		samps <- list()
+		for(j in 1:length(A)){
+			samps[[j]] <- sample(na[[j]], A[j], replace = FALSE)
+			}
+		sdist[i] <- length(Reduce(intersect, samps))
 		}
 	cat("\n")
 	return(sdist)
 	}
 
+
+# To overlay results of simulation on top of distribution point plot.
+overlay.sim <- function(sim, breaks, col = "red", pch = 1, lwd = 1)
+	{
+	# breaks is a vector giving the exact breaks as determined by the distribution.
+	pts <- NULL
+	len <- length(sim)
+	for(i in breaks){
+		pts <- append(pts, length(which(sim==i))/len )
+		}
+
+	points(breaks, pts, col=col, pch=pch, lwd=lwd)
+	return(invisible())
+	}
 
 
 

@@ -26,16 +26,16 @@ Kalinka, A.T. (2013). The probability of drawing intersections: extending the hy
 \keyword{univar}
 
 \seealso{
-\code{\link{Hyperintersection}}, \code{\link{hint.test}}, \code{\link{Hyperdistinct}}.
+\code{\link{Hyperintersection}}, \code{\link{hint.test}}, \code{\link{Binomialintersection}}, \code{\link{Hyperdistinct}}.
 }
 \examples{
 ## Generate a hypergeometric intersection distribution and plot it.
-dd <- dhint(110, 65, 71)
+dd <- dhint(110, c(65, 71))
 plotDistr(dd)
 
-## Allow duplicates in q of the categories in the second urn and add the distributions to the existing plot.
-dd <- dhint(110, 65, 71, 82)
-dd2 <- dhint(59, 44, 28, 47)
+## Allow duplicates in the second urn and add the distributions to the existing plot.
+dd <- dhint(110, c(65, 71), 82)
+dd2 <- dhint(59, c(44, 28), 47)
 add.distr(dd, dd2, cols = c("blue", "darkgreen"))
 
 ## Test whether the intersection of categories in data sets is significant and plot the result:

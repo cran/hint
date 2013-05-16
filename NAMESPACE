@@ -1,4 +1,4 @@
-export(dhint, phint, qhint, rhint, hint.test, hint.dist.test, sim.hypint, plotDistr, add.distr, dhydist, phydist, qhydist, rhydist, sim.hydist)
+export(dhint, phint, qhint, rhint, hint.test, hint.dist.test, sim.hypint, plotDistr, add.distr, dhydist, phydist, qhydist, rhydist, sim.hydist, overlay.sim, dbint, pbint, qbint, rbint)
 
 S3method(plot, hint.test)
 S3method(print, hint.test)
