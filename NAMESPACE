@@ -1,0 +1,8 @@
+export(dhint, phint, qhint, rhint, hint.test, hint.dist.test, sim.hypint, plotDistr, add.distr, dhydist, phydist, qhydist, rhydist, sim.hydist)
+
+S3method(plot, hint.test)
+S3method(print, hint.test)
+
+useDynLib(hint, inters_distr_dup_opt)
+
+
