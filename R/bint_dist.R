@@ -35,7 +35,26 @@
 	}
 
 
+#' The Binomial Intersection Distribution
+#' 
+#' Density, distribution function, quantile function and random generation for the binomial intersection distribution.
+#' 
+#' @param n An integer specifying the number of categories in the urns.
+#' @param A A vector of integers specifying the numbers of balls drawn from each urn. The length of the vector equals the number of urns.
+#' @details The binomial intersection distribution is given by \deqn{  P(X = v|N) = {b \choose v} \left(\prod_{i=1}^{N-1} p_{i}\right)^{v} \left(1 - \prod_{i=1}^{N-1} p_{i}\right)^{b-v} }{ P(X = v|N) = choose(b,v)*((prod_{i=1}^{N-1} p_i)^v) * (1 - prod_{i=1}^{N-1} p_i)^(b-v) } where b gives the sample size which is smallest. This is an approximation for the hypergeometric intersection distribution when \eqn{n}{n} is large and \eqn{b}{b} is small relative to the samples taken from the \eqn{N-1}{N-1} other urns.
+#' @name Binomialintersection
+NULL
+#> NULL
 
+#' @rdname Binomialintersection
+#' @param range A vector of integers specifying the intersection sizes for which probabilities (dhint) or cumulative probabilites (phint) should be computed (can be a single number). If range is NULL (default) then probabilities will be returned over the entire range of possible values.
+#' @param log Logical. If TRUE, probabilities p are given as log(p). Defaults to FALSE.
+#' @export
+#' @examples 
+#' ## Generate the distribution of intersections sizes:
+#' dd <- dbint(20, c(10, 12, 11, 14))
+#' ## Restrict the range of intersections.
+#' dd <- dbint(20, c(10, 12), range = 0:5)
 dbint <- function(n, A, range = NULL, log = FALSE)
 	{
 	# range is a vector giving intersection sizes for which the user wishes to retrieve probabilities.
@@ -58,6 +77,15 @@ dbint <- function(n, A, range = NULL, log = FALSE)
 	}
 
 
+#' @rdname Binomialintersection
+#' @param vals A vector of integers specifying the intersection sizes for which probabilities (dhint) or cumulative probabilites (phint) should be computed (can be a single number). If range is NULL (default) then probabilities will be returned over the entire range of possible values.
+#' @param log.p Logical. If TRUE, probabilities p are given as log(p). Defaults to FALSE.
+#' @param upper.tail Logical. If TRUE, probabilities are P(X >= v), else P(X <= v). Defaults to TRUE.
+#' @export
+#' @examples 
+#' ## Generate cumulative probabilities.
+#' pp <- pbint(29, c(15, 8), vals = 5)
+#' pp <- pbint(29, c(15, 8), vals = 2, upper.tail = FALSE)
 pbint <- function(n, A, vals, upper.tail = TRUE, log.p = FALSE)
 	{
 	# vals are the values of v for which we want cumulative probabilities.
@@ -104,7 +132,12 @@ pbint <- function(n, A, vals, upper.tail = TRUE, log.p = FALSE)
 	}
 
 
-
+#' @rdname Binomialintersection
+#' @param p A probability between 0 and 1.
+#' @export
+#' @examples 
+#' ## Extract quantiles:
+#' qq <- qbint(0.15, 23, c(12, 10))
 qbint <- function(p, n, A, upper.tail = TRUE, log.p = FALSE)
 	{
 	# p is a probability.
@@ -126,6 +159,12 @@ qbint <- function(p, n, A, upper.tail = TRUE, log.p = FALSE)
 	}
 
 
+#' @rdname Binomialintersection
+#' @param num An integer specifying the number of random numbers to generate. Defaults to 5.
+#' @export
+#' @examples 
+#' ## Generate random samples from Binomial intersection distributions.
+#' rr <- rbint(num = 10, 18, c(9, 14))
 rbint <- function(num = 5, n, A)
 	{
 	vrange <- .bint.check.params(n, A)
@@ -133,8 +172,6 @@ rbint <- function(num = 5, n, A)
 	samp <- sample(vrange, num, prob = probs[,2], replace = TRUE)
 	return(samp)
 	}
-
-
 
 
 # Worker functions. #
@@ -158,6 +195,4 @@ rbint <- function(num = 5, n, A)
 	ret <- data.frame(v=range, p=dist)
 	return(ret)
 	}
-
-
 
